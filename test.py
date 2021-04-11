@@ -1,5 +1,6 @@
 import platform    # For getting the operating system name
 import subprocess as sp  # For executing a shell command
+import threading
 import os
 
 def ping(address, n_echos = 1, wait=2):
@@ -24,25 +25,58 @@ def ping(address, n_echos = 1, wait=2):
                  stdout=sp.PIPE, stderr=sp.PIPE)  ## if you don't want it to print it out
     exit_code = ping.wait()
 
-    
     return exit_code == 0
-    
-    
+
+
+def ping_networks(host_address):
+    unwanted_octets = [15, 56]
+    network_addresses = ['192.168.1.', '192.168.2.']
+    if host_address not in unwanted_octets:
+        p = []
+        for network_address in network_addresses:
+            address = network_address + '%i' % host_address
+            pi = ping(address)
+            p.append(pi)
+        if not all(pi == p[0] for pi in p):
+            return host_address
+
 if __name__ == "__main__":
+    import time
     
     unmatched_octets = []
     unwanted_octets = [15, 56]
     network_addresses = ['192.168.1.', '192.168.2.']
-    for host_address in range(256):
-        if host_address not in unwanted_octets:
-            p = []
-            for network_address in network_addresses: 
-                p.append(ping(network_address + '%i' % host_address))
-            print(host_address, p)
-            if all(pi == p[0] for pi in p):
-                unmatched_octets.append(host_address)
-    print("Octets with different responses: ", unmatched_octets)
+    host_addresses = list(range(0,256))
     
+    # If the system is CPU bound, use Pool (uses multiple processors)
+    # If the system is I/O bound, use ThreadPool (uses multiple threads)
+    # If unsure, just try both and see which one is slower
+    # Same for ThreadPoolExecutor vs ProcessPoolExecutor
+    from multiprocessing.pool import ThreadPool as Pool
+    # from multiprocessing import Pool
+
+    # Need to make a function that determines optimal number of threads
+    pool_size = 100  # your "parallelness"
+
+    # define worker function before a Pool is instantiated
+    def worker(address):
+        try:
+            ping(network_address + '%i' % host_address)
+        except:
+            print('error with item')
+
+    start_time = time.time()
+    p = Pool(pool_size)
+    unmatched_octets = p.map(ping_networks, host_addresses)
+    # Without multithreading
+    # for host_address in host_addresses:
+            # ping_networks(network_adresses, host_adress)
+    p.close()
+    p.join()
+    # to remove None values in list
+    unmatched_octets = [i for i in unmatched_octets if i]
+    print("Octets with different responses: ", unmatched_octets)
+    print('Processing time: ', time.time() - start_time)
     # current_os = platform.system().lower()
     # if current_os == "windows":
         # parameter = "-n"
