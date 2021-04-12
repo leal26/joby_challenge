@@ -28,19 +28,18 @@ class TestSum(unittest.TestCase):
     def test_integer_inputs(self):
         network_addresses = ['500.168.1.', '192.168.2.']
         with self.assertRaises(TypeError):
-            address_checker(network_addresses, pool_size = '192.168.1.')
-            address_checker(network_addresses, pool_size = [])
-            address_checker(network_addresses, pool_size = -1)
+            address_checker(network_addresses, number_threads = '192.168.1.')
+            address_checker(network_addresses, number_threads = [])
+            address_checker(network_addresses, number_threads = -1)
             address_checker(network_addresses, n_echos = '192.168.1.')
             address_checker(network_addresses, n_echos = [])
             address_checker(network_addresses, n_echos = -1)
             address_checker(network_addresses, wait = '192.168.1.')
             address_checker(network_addresses, wait = [])
             address_checker(network_addresses, wait = -1)
-            address_checker(network_addresses, pool_size = '192.168.1.')
-            address_checker(network_addresses, pool_size = [])
-            address_checker(network_addresses, pool_size = -1)
-            
+            address_checker(network_addresses, n_attempts = '192.168.1.')
+            address_checker(network_addresses, n_attempts = [])
+            address_checker(network_addresses, n_attempts = -1)
             
 if __name__ == '__main__':
     unittest.main()
