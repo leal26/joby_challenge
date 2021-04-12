@@ -1,0 +1,1 @@
+Please run 'pip install -e .' to install library (static link)
