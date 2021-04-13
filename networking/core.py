@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from multiprocessing.pool import ThreadPool as Pool
 import matplotlib.pyplot as plt
 import subprocess as sp 
@@ -7,17 +8,53 @@ import time
 import os
 
 class address_checker():
+    """This is a class to evaluate responsativity of multiple addresses to a ping 
+       and find addresses with same host but different networks addresses that have
+       different responses to a ping.
+
+    Inputs
+    ----------
+    :param network_addresses
+    :type network_addresses: list
+    
+    :param host_addresses: a list of integers containing all host addresses, defaults to [0, ..., 255]
+    :type host_addresses: list, optional
+    
+    :param host_unwanted: ,defaults to []
+    :type host_unwanted: list, optional
+    
+    :param number_threads: , defaults to 130
+    :type number_threads: int, optional
+    
+    :param n_echos: specifies the number of echo Request messages be sent, defaults to 1
+    :type n_echos: int, optional
+    
+    :param wait: specifies the amount of time, in milliseconds, to wait for the echo, defaults to 2 ms
+    :type wait: int, optional
+    
+    :param n_attempts: , defaults to 2
+    :type n_attempts: int, optional
+
+    See Also
+    --------
+    empty_like, zeros
+
+    Examples
+    --------
+    >>> import numpy.matlib
+    >>> np.matlib.empty((2, 2))    # filled with random data
+    matrix([[  6.76425276e-320,   9.79033856e-307], # random
+            [  7.39337286e-309,   3.22135945e-309]])
+    >>> np.matlib.empty((2, 2), dtype=int)
+    matrix([[ 6600475,        0], # random
+            [ 6586976, 22740995]])
+
+    """
     def __init__(self, network_addresses, host_addresses = list(range(256)),
                  host_unwanted = [], number_threads=130, n_echos = 1, wait = 2,
                  n_attempts=2):
-        """
-        Only tested for Windows and IPv4 address/
-        
-        Returns True if address (str) responds to a ping request.
-        Inputs:
-        - n_echos: Specifies the number of echo Request messages be sent. The default is 1.
-        - wait: Specifies the amount of time, in milliseconds, to wait for the echo.
-        Windows Ping doc: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/ping
+   
+        """Constructor method
         """
         # Assign properties
         self.network_addresses = network_addresses
@@ -40,7 +77,8 @@ class address_checker():
     def _check_inputs(self):
         '''Evaluates if inputs are the correct format. This is evaluated when
            object is created and before any major operation (ping multiple addresses)
-           just in case the user changed the variables.'''
+           just in case the user changed the variables.
+        '''
            
         # Check if OS is Windows. It should run for Linux, but was not tested
         if platform.system().lower() != 'windows':
@@ -94,16 +132,26 @@ class address_checker():
             
             if not isinstance((values), (int) ):
                 raise TypeError(name + " should be an integer")
-            
+                
+            if values < 1:
+                raise TypeError(name + " should be an integer equal to or more than one")
 
     def show(self):
         attrs = vars(self)
         print(''.join("%s: %s\n" % item for item in attrs.items()))
         
     def ping(self, address):
+        """Pings address. Returns True if an echo is received.
+        Inputs
+        ----------
+        :param address: a string in dot-decimal notation is expected
+        :type address: string
+
+        Notes
+        ----------
+        Windows ping doc: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/ping
         """
-        address: a string in dot-decimal notation is expected
-        """
+        self._check_inputs()
         
         exit_code = False
         attempts = 0
@@ -128,6 +176,7 @@ class address_checker():
                 address = network_address + '%i' % host_address
                 pi = self.ping(address)
                 p.append(pi)
+
             if not all(pi == p[0] for pi in p):
                 return host_address
 
@@ -135,7 +184,8 @@ class address_checker():
         '''pings all addresses for all networks
         
         Inputs (optional):
-            - runtime: if True, will calculate how long it took to run (default is False)'''
+            - runtime: if True, will calculate how long it took to run (default is False)
+        '''
             
         self._check_inputs()
         
@@ -155,13 +205,30 @@ class address_checker():
         if runtime: self.runtime = time.time() - start_time
 
     def optimal_thread_number(self, thread_range=list(range(10, 210, 10)), plot=False):
+        """Determines .
+        Inputs
+        ----------
+        :param address: a string in dot-decimal notation is expected
+        :type address: string
+
+        Returns
+        -------
+    
+        Notes
+        ----------
+        Windows ping doc: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/ping
+        """
         runtimes = []
         for self.number_threads in thread_range:
             self.ping_all(runtime=True)
             runtimes.append(self.runtime)
-        
-        plt.figure()
-        plt.plot(thread_range, runtimes)
-        plt.xlabel('Number of threads')
-        plt.ylabel('Runtime (s)')
-        plt.show()
+
+        if plot:
+            plt.figure()
+            plt.plot(thread_range, runtimes)
+            plt.xlabel('Number of threads')
+            plt.ylabel('Runtime (s)')
+            plt.show()
+            
+        optimal_runtime = min(runtimes)
+        return optimal_runtime, (thread_range[runtimes.index(optimal_runtime)])
