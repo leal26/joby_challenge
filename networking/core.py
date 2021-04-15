@@ -2,7 +2,6 @@
 from multiprocessing.pool import ThreadPool as Pool
 import matplotlib.pyplot as plt
 import subprocess as sp
-import threading
 import platform
 import time
 import os
@@ -13,31 +12,37 @@ class address_checker():
        ping and find addresses with same host but different networks addresses
        that have different responses to a ping.
 
+       This library has only been tested on Windows OS.
 
     :param network_addresses: a list of network addresses to check such as
                               ['192.168.1.', '192.168.2.']. There should at
-                             least be two network addresses.
+                              least be two network addresses.
     :type network_addresses: list
 
     :param host_addresses: a list of integers containing all host addresses,
-            defaults to [0, ..., 255]
+                           defaults to [0, ..., 255]
     :type host_addresses: list, optional
 
-    :param host_unwanted: ,defaults to []
+    :param host_unwanted: a list of host addresses that should not be evaluates
+                          , defaults to []
     :type host_unwanted: list, optional
 
-    :param number_threads: , defaults to 130
+    :param number_threads: number of threads to accelerate the processes of
+                           pinging all addresses. For optimal performance,
+                           utilize self.optimal_thread_number() for optimal
+                           thread number, defaults to 130
     :type number_threads: int, optional
 
-    :param n_echos: specifies the number of echo Request messages be sent,
-        defaults to 1
+    :param n_echos: specifies the number of echo request messages sent,
+                    defaults to 1
     :type n_echos: int, optional
 
     :param wait: specifies the amount of time, in milliseconds, to wait for
-        the echo, defaults to 2 ms
+                 the echo, defaults to 2 ms
     :type wait: int, optional
 
-    :param n_attempts: , defaults to 2
+    :param n_attempts: number of attempts in case an address is not responsive
+                        to the ping, defaults to 2
     :type n_attempts: int, optional
 
     Examples
@@ -45,7 +50,7 @@ class address_checker():
     >>> import address_checker from networking
     >>> host_unwanted = [15, 56]
     >>> network_addresses = ['192.168.1.', '192.168.2.']
-    >>> c = address_checker(network_addresses, n_echos=n_echos)
+    >>> c = address_checker(network_addresses)
     >>> c.ping_all()
 
     """
@@ -53,7 +58,7 @@ class address_checker():
     def __init__(self, network_addresses, host_addresses=list(range(256)),
                  host_unwanted=[], number_threads=130, n_echos=1, wait=2,
                  n_attempts=2):
-        """Constructor method
+        """Constructor method.
         """
         # Assign properties
         self.network_addresses = network_addresses
@@ -75,8 +80,9 @@ class address_checker():
 
     def _check_inputs(self):
         '''Evaluates if inputs are the correct format. This is evaluated when
-           object is created and before any major operation (ping multiple
-           addresses) just in case the user changed the variables.
+           the object is created. The attribute is also invoked before any
+           major operation (ping multiple addresses) just in case the user
+           changed the variables.
         '''
 
         # Check if OS is Windows. It should run for Linux, but was not tested
@@ -180,7 +186,7 @@ class address_checker():
         return exit_code
 
     def _ping_networks(self, host_address):
-        """Pings the same host address for all network addresses.
+        """Pings the same host address for all specified network addresses.
 
         :param host_address: the host address (last octect of dot-decimal
                              notation). It should be positive and less than 256
@@ -201,7 +207,7 @@ class address_checker():
                 return host_address
 
     def ping_all(self, runtime=False):
-        '''pings all addresses for all networks
+        '''pings all addresses for all networks.
 
         :param runtime: if True, will runtime (default is False)
         :type runtime: bool, optional

@@ -1,7 +1,8 @@
 Installation
 ***************************************
 
-In main directory of the library run the following to install:
+Open a command line in the main directory and run the following to install the
+library:
 
 .. code-block:: python
 

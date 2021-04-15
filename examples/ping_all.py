@@ -1,12 +1,16 @@
 from networking import address_checker
 
-
+## Inputs
+# Undesirable host addresses
 host_unwanted = [15, 56]
+# Network addresses (first three octets) to evalaute
 network_addresses = ['192.168.1.', '192.168.2.']
-host_addresses = list(range(0, 256))
-n_echos = 1
+# number of attemps in case an address is not responsive
+n_attempts = 2
 
-c = address_checker(network_addresses, n_echos=n_echos)
+# Define object with all inputs
+c = address_checker(network_addresses, host_unwanted=host_unwanted,
+                    n_attempts=n_attempts)
 
 # Print configuration to double check everything
 # c.show()
@@ -17,4 +21,3 @@ c = address_checker(network_addresses, n_echos=n_echos)
 # Ping all host addresses for all network addresses
 c.ping_all()
 print("Host addresses with different responses: ", c.unmatched_hosts)
-print('Processing time: ', c.runtime)
